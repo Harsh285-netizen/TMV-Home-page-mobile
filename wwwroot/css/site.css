@@ -368,6 +368,253 @@ body {
     100% { box-shadow: 0 0 0 0 rgba(245, 166, 35, 0); }
 }
 
+.fan-card:focus-visible,
+.player-bar__arrow:focus-visible,
+.player-bar__play:focus-visible,
+.control-cluster__arrow:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* ===============================================================
+   Desktop hero (Figma "flow 7") — >=900px
+   Same fan-carousel engine as mobile, just 5 roles instead of 3
+   and a bottom-left control cluster instead of a full-width bar.
+   =============================================================== */
+
+.desktop-hero {
+    display: none;
+}
+
+@media (min-width: 900px) {
+    .phone-frame {
+        display: none;
+    }
+
+    .desktop-hero {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+        width: 100%;
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 44px 56px 72px;
+    }
+
+    .desktop-hero .logo {
+        font-size: 2.3rem;
+    }
+}
+
+.desktop-stage {
+    position: relative;
+    width: 100%;
+    height: clamp(280px, 26vw, 420px);
+    margin-top: 8px;
+}
+
+.desktop-stage .fan-card {
+    position: absolute;
+    width: clamp(120px, 11vw, 168px);
+    height: clamp(150px, 13.5vw, 206px);
+    border-radius: 18px;
+}
+
+/* --- Placeholder art (swap for real Figma exports) --- */
+.fan-card__image--reel {
+    background:
+        radial-gradient(circle at 30% 25%, rgba(255, 235, 205, 0.5), transparent 55%),
+        linear-gradient(150deg, #cbb896, #6a4a2c 60%, #2a1a0d);
+}
+
+.fan-card__image--neon {
+    background:
+        radial-gradient(circle at 65% 30%, rgba(255, 90, 160, 0.6), transparent 45%),
+        radial-gradient(circle at 30% 70%, rgba(130, 60, 255, 0.55), transparent 50%),
+        #0c0014;
+}
+
+.fan-card__image--session {
+    background:
+        linear-gradient(160deg, rgba(255, 255, 255, 0.08), transparent 40%),
+        linear-gradient(150deg, #3a332b, #17130f 65%, #050403);
+}
+
+.fan-card__image--sheet {
+    background: linear-gradient(155deg, #f2ece0, #cfc7b6 55%, #9b937f);
+}
+
+.fan-card__image--sheet .fan-card__label {
+    color: rgba(20, 18, 14, 0.85);
+    background: rgba(255, 255, 255, 0.55);
+    border-color: rgba(20, 18, 14, 0.1);
+}
+
+.fan-card__image--vinyl {
+    background:
+        radial-gradient(circle at 32% 35%, rgba(255, 196, 60, 0.85), transparent 40%),
+        radial-gradient(circle at 68% 62%, rgba(255, 60, 150, 0.7), transparent 42%),
+        #0f3d3a;
+}
+
+/* Position + rotation per role, matching the Figma scatter: highest and
+   straightest in the middle, lower and more rotated toward the edges.
+   Only transform/opacity/z-index differ between roles, so relabeling a
+   card's role class is what the browser animates. */
+.pos-outer-left {
+    top: 79%;
+    left: 6.5%;
+    transform: translate(-50%, -50%) rotate(-20deg) scale(0.82);
+    z-index: 2;
+    opacity: 0.82;
+}
+
+.pos-inner-left {
+    top: 38%;
+    left: 23.5%;
+    transform: translate(-50%, -50%) rotate(-14deg) scale(0.92);
+    z-index: 3;
+    opacity: 0.9;
+}
+
+.pos-center {
+    top: 20%;
+    left: 47.3%;
+    transform: translate(-50%, -50%) rotate(-4deg) scale(1.12);
+    z-index: 5;
+    opacity: 1;
+    box-shadow: 0 30px 60px -14px rgba(0, 0, 0, 0.75);
+}
+
+.pos-inner-right {
+    top: 35%;
+    left: 71.5%;
+    transform: translate(-50%, -50%) rotate(15deg) scale(0.92);
+    z-index: 3;
+    opacity: 0.9;
+}
+
+.pos-outer-right {
+    top: 73%;
+    left: 90%;
+    transform: translate(-50%, -50%) rotate(22deg) scale(0.82);
+    z-index: 2;
+    opacity: 0.82;
+}
+
+.now-playing-badge {
+    position: absolute;
+    top: 20%;
+    left: 47.3%;
+    transform: translate(-50%, calc(-50% + 2px));
+    z-index: 6;
+    padding: 7px 16px;
+    border-radius: 999px;
+    background: #f4f1ea;
+    color: #17140f;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    box-shadow: 0 10px 20px -6px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+    transition: box-shadow 0.3s ease;
+}
+
+.now-playing-badge.is-playing {
+    animation: badge-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes badge-pulse {
+    0%, 100% { box-shadow: 0 10px 20px -6px rgba(0, 0, 0, 0.6); }
+    50% { box-shadow: 0 10px 26px -4px rgba(245, 166, 35, 0.55); }
+}
+
+.desktop-content {
+    display: grid;
+    grid-template-columns: minmax(150px, 200px) 1fr;
+    column-gap: 48px;
+    align-items: end;
+}
+
+.desktop-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-width: 640px;
+}
+
+.desktop-copy p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-dim);
+}
+
+.desktop-headline {
+    font-size: clamp(2.8rem, 5.4vw, 4.6rem);
+}
+
+.control-cluster {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: max-content;
+}
+
+.control-cluster__arrows {
+    display: flex;
+    gap: 6px;
+    padding: 6px;
+    width: max-content;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+}
+
+.control-cluster__arrow {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: var(--surface-soft);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.18s var(--ease-smooth), background 0.18s ease, opacity 0.2s ease;
+}
+
+.control-cluster__arrow:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.control-cluster__arrow:active {
+    transform: scale(0.88);
+}
+
+.control-cluster__arrow:disabled {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+.control-cluster__track {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 8px 8px 8px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    box-shadow: 0 16px 32px -18px rgba(0, 0, 0, 0.8);
+}
+
+.control-cluster__play {
+    width: 34px;
+    height: 34px;
+}
+
 /* ---------------- Reduced motion ---------------- */
 
 @media (prefers-reduced-motion: reduce) {
@@ -375,7 +622,9 @@ body {
     .player-bar__meta,
     .player-bar__arrow,
     .player-bar__play,
-    .player-bar__play svg {
+    .player-bar__play svg,
+    .control-cluster__arrow,
+    .now-playing-badge {
         transition-duration: 0.01ms !important;
         animation: none !important;
     }

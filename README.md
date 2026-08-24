@@ -1,9 +1,14 @@
 # TMV-Home-page-mobile
 
-ASP.NET Core (Razor Pages, .NET 8) mobile home page for TM Ventures,
-reproducing the Figma "fan carousel" hero: three images arranged in a
-fan layout that rotate via the left/right arrow buttons, plus a play
-button that starts/stops the carousel auto-rotating on its own.
+ASP.NET Core (Razor Pages, .NET 8) home page for TM Ventures, reproducing
+the Figma "fan carousel" hero for both breakpoints:
+
+- **Mobile** (<900px, "TM Ventures Home_Mobile"): 3 cards in a tight fan.
+- **Desktop** (>=900px, "flow 7"): 5 cards in a wider scattered arc, plus
+  a compact bottom-left control cluster instead of a full-width bar.
+
+Both share one rotation engine and a play button that starts/stops the
+cards auto-rotating on their own (it's not an audio player).
 
 ## Run
 
@@ -13,40 +18,51 @@ dotnet run
 ```
 
 Then open the URL printed in the console (e.g. `https://localhost:5001`).
-The layout is mobile-first (max-width ~430px, centered), so use your
-browser's device toolbar / a phone to preview it as intended.
+Resize the browser (or use its device toolbar) across ~900px to see it
+switch between the mobile and desktop layouts.
 
 ## Project layout
 
 ```
 Program.cs                     ASP.NET Core startup (Razor Pages)
-Pages/Index.cshtml(.cs)        Home page markup + slide data
+Pages/Index.cshtml(.cs)        Home page markup + mobile/desktop slide data
 Pages/Shared/_Layout.cshtml    Shared HTML shell, fonts, script include
 wwwroot/css/site.css           All styling + carousel/player animations
-wwwroot/js/carousel.js         Carousel rotation, swipe, play/pause logic
+wwwroot/js/carousel.js         Shared carousel engine, swipe, auto-play logic
 wwwroot/images/                Where to drop real exported photos (see README there)
 ```
 
 ## How the animation works
 
-- **Fan carousel** (`.fan-card` elements in `#fanStage`): three cards are
-  assigned a `left` / `center` / `right` role class, each with its own
-  `transform` (position, rotation, scale). Clicking the arrows (or
-  swiping, or clicking a side card, or pressing ← / →) rotates which
-  card holds which role in `carousel.js`; because only the CSS class
-  changes, the browser animates the transform smoothly (650ms,
-  `cubic-bezier` back-ease) with no re-render or layout thrash.
-- Buttons are disabled for the duration of the transition so rapid
-  clicking can't desync the animation.
-- The track title/artist in the player bar cross-fades to match
-  whichever slide is now centered.
-- **Play button**: toggles the carousel's *auto-rotation*, not audio —
-  clicking it starts a timer (`AUTO_PLAY_MS`, 3.2s) that calls the same
-  `rotate(1)` used by the next arrow, so it advances the fan on its own.
-  It also cross-fades the play/pause SVG icons, pulses the button, and
-  animates the small equalizer pill above the carousel while running.
-  Any manual interaction (an arrow, a side card, ← / →, a swipe) stops
-  auto-play so it doesn't fight the user.
+Both breakpoints render at once (`<main class="phone-frame">` and
+`<main class="desktop-hero">` are both always in the DOM); `site.css`
+shows exactly one of them via a `@media (min-width: 900px)` query, so
+switching is instant with no JS re-render.
+
+- **Fan carousel** (`.fan-card` elements): each card gets a role class —
+  `left`/`center`/`right` on mobile, `outer-left`/`inner-left`/`center`/
+  `inner-right`/`outer-right` on desktop — and every role has its own
+  fixed `transform` (position, rotation, scale) in CSS. `carousel.js`'s
+  `createFanCarousel()` factory relabels which card holds which role;
+  because only the class changes, the browser animates the transform on
+  its own (650ms, `cubic-bezier` back-ease), with no re-render.
+- **Rotation direction**: "next" walks every card one role toward the
+  left — the current center card lands in the role just left of center
+  (matching the Figma flow) — and "prev" mirrors it. The engine is
+  generic over the role list, so the exact same function drives the
+  3-role mobile ring and the 5-role desktop ring.
+- Arrow buttons are disabled for the duration of a transition so rapid
+  clicking can't desync the animation. Clicking any off-center card, a
+  swipe, or ← / → also rotates.
+- The track title/artist cross-fades to match whichever slide is now
+  centered.
+- **Play button**: toggles *auto-rotation*, not audio — it starts a
+  timer (`AUTO_PLAY_MS`, 3.2s) that calls the same rotation the next
+  arrow uses, so the deck advances on its own. It also cross-fades the
+  play/pause SVG icons, pulses the button, and animates the "now
+  playing" indicator above the carousel (an equalizer pill on mobile, a
+  text badge on desktop, matching each Figma reference) while running.
+  Any manual interaction stops auto-play so it doesn't fight the user.
 - `prefers-reduced-motion: reduce` shortens/disables the animations for
   users who request it.
 

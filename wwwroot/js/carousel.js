@@ -6,53 +6,90 @@
     // Keep this in sync with --transition-slide in site.css.
     var ANIMATION_MS = 650;
     var AUTO_PLAY_MS = 3200;
-    var ROLES = ['left', 'center', 'right'];
 
     function init() {
-        var stage = document.getElementById('fanStage');
-        var prevBtn = document.getElementById('prevBtn');
-        var nextBtn = document.getElementById('nextBtn');
-        var playBtn = document.getElementById('playBtn');
-        var pill = document.getElementById('nowPlayingPill');
-        var meta = document.querySelector('.player-bar__meta');
-        var trackTitleEl = document.getElementById('trackTitle');
-        var trackArtistEl = document.getElementById('trackArtist');
+        createFanCarousel({
+            stageId: 'fanStage',
+            prevId: 'prevBtn',
+            nextId: 'nextBtn',
+            playId: 'playBtn',
+            pillId: 'nowPlayingPill',
+            metaSelector: '#playerBar .player-bar__meta',
+            trackId: 'trackTitle',
+            artistId: 'trackArtist',
+            roles: ['left', 'center', 'right'],
+            roleClassPrefix: 'fan-card--',
+            slides: window.tmvSlides || []
+        });
+
+        createFanCarousel({
+            stageId: 'desktopStage',
+            prevId: 'prevBtnDesktop',
+            nextId: 'nextBtnDesktop',
+            playId: 'playBtnDesktop',
+            pillId: 'nowPlayingPillDesktop',
+            metaSelector: '#playerBarDesktop .player-bar__meta',
+            trackId: 'trackTitleDesktop',
+            artistId: 'trackArtistDesktop',
+            roles: ['outer-left', 'inner-left', 'center', 'inner-right', 'outer-right'],
+            roleClassPrefix: 'pos-',
+            slides: window.tmvDesktopSlides || []
+        });
+    }
+
+    // One rotation engine shared by every breakpoint's carousel. `roles` is
+    // an ordered list of position names (outer-to-outer, center in the
+    // middle); each card gets a `<roleClassPrefix><role>` class that CSS
+    // gives its own transform, so "rotating" is just relabeling elements —
+    // the browser animates the resulting transform change on its own.
+    function createFanCarousel(opts) {
+        var stage = document.getElementById(opts.stageId);
+        var prevBtn = document.getElementById(opts.prevId);
+        var nextBtn = document.getElementById(opts.nextId);
+        var playBtn = document.getElementById(opts.playId);
+        var pill = document.getElementById(opts.pillId);
+        var meta = opts.metaSelector ? document.querySelector(opts.metaSelector) : null;
+        var trackTitleEl = document.getElementById(opts.trackId);
+        var trackArtistEl = document.getElementById(opts.artistId);
 
         if (!stage || !prevBtn || !nextBtn) {
             return;
         }
 
-        var cards = Array.prototype.slice.call(stage.querySelectorAll('.fan-card'));
-        var slides = window.tmvSlides || [];
+        var roles = opts.roles;
+        var prefix = opts.roleClassPrefix;
+        var slides = opts.slides || [];
+        var centerRoleIndex = Math.floor(roles.length / 2);
 
-        if (!cards.length) {
+        var cards = Array.prototype.slice.call(stage.querySelectorAll('.fan-card'));
+        if (cards.length < roles.length) {
             return;
         }
 
-        // order[i] = index (into `cards`) currently occupying ROLES[i].
-        // Markup order maps 1:1 onto left / center / right to start with.
-        var order = cards.map(function (_, i) { return i; }).slice(0, ROLES.length);
+        // order[i] = index (into `cards`) currently occupying roles[i].
+        // Markup order maps 1:1 onto the role list to start with.
+        var order = cards.map(function (_, i) { return i; }).slice(0, roles.length);
         var isAnimating = false;
         var isAutoPlaying = false;
         var autoPlayTimer = null;
 
         applyRoles(order);
-        updateMeta(order[1], false);
+        updateMeta(order[centerRoleIndex], false);
 
         nextBtn.addEventListener('click', function () { stopAutoPlay(); rotate(1); });
         prevBtn.addEventListener('click', function () { stopAutoPlay(); rotate(-1); });
 
-        cards.forEach(function (card, index) {
-            card.addEventListener('click', function () {
-                if (isAnimating) return;
-                stopAutoPlay();
-                var role = card.dataset.role;
-                if (role === 'right') rotate(1);
-                if (role === 'left') rotate(-1);
+        cards.forEach(function (card) {
+            card.addEventListener('click', function () { activateCard(card); });
+            card.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    activateCard(card);
+                }
             });
         });
 
-        document.addEventListener('keydown', function (e) {
+        stage.addEventListener('keydown', function (e) {
             if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
             stopAutoPlay();
             rotate(e.key === 'ArrowRight' ? 1 : -1);
@@ -64,17 +101,28 @@
             playBtn.addEventListener('click', toggleAutoPlay);
         }
 
+        function activateCard(card) {
+            if (isAnimating) return;
+            var roleIndex = roles.indexOf(card.dataset.role);
+            if (roleIndex === centerRoleIndex) return;
+            stopAutoPlay();
+            rotate(roleIndex > centerRoleIndex ? 1 : -1);
+        }
+
         function rotate(direction) {
-            if (isAnimating || cards.length < ROLES.length) return;
+            if (isAnimating) return;
             isAnimating = true;
             [prevBtn, nextBtn].forEach(function (b) { b.disabled = true; });
 
+            // Rotating "next" walks every card one role toward the outer-left
+            // edge (the old center lands in the role just left of center);
+            // "prev" walks the other way. Works for any role-list length.
             order = direction > 0
-                ? [order[1], order[2], order[0]]
-                : [order[2], order[0], order[1]];
+                ? order.slice(1).concat(order.slice(0, 1))
+                : order.slice(-1).concat(order.slice(0, -1));
 
             applyRoles(order);
-            updateMeta(order[1], true);
+            updateMeta(order[centerRoleIndex], true);
 
             window.setTimeout(function () {
                 isAnimating = false;
@@ -85,11 +133,11 @@
         function applyRoles(newOrder) {
             newOrder.forEach(function (cardIndex, roleIndex) {
                 var card = cards[cardIndex];
-                var role = ROLES[roleIndex];
-                card.classList.remove('fan-card--left', 'fan-card--center', 'fan-card--right');
-                card.classList.add('fan-card--' + role);
+                var role = roles[roleIndex];
+                roles.forEach(function (r) { card.classList.remove(prefix + r); });
+                card.classList.add(prefix + role);
                 card.dataset.role = role;
-                card.setAttribute('aria-current', role === 'center' ? 'true' : 'false');
+                card.setAttribute('aria-current', roleIndex === centerRoleIndex ? 'true' : 'false');
             });
         }
 
