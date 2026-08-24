@@ -2,8 +2,8 @@
 
 ASP.NET Core (Razor Pages, .NET 8) mobile home page for TM Ventures,
 reproducing the Figma "fan carousel" hero: three images arranged in a
-fan layout that rotate via the left/right arrow buttons, plus a
-play/pause control for the featured track.
+fan layout that rotate via the left/right arrow buttons, plus a play
+button that starts/stops the carousel auto-rotating on its own.
 
 ## Run
 
@@ -40,12 +40,13 @@ wwwroot/images/                Where to drop real exported photos (see README th
   clicking can't desync the animation.
 - The track title/artist in the player bar cross-fades to match
   whichever slide is now centered.
-- **Play button**: toggles a `.is-playing` class that cross-fades the
-  play/pause SVG icons, pulses the button, and animates the small
-  "now playing" equalizer pill above the carousel. It's wired to an
-  `<audio>` element — set `audio.src` (or add a `data-src` attribute on
-  each slide and assign it in `updateMeta`) once you have real track
-  files; without a source it still animates the UI state.
+- **Play button**: toggles the carousel's *auto-rotation*, not audio —
+  clicking it starts a timer (`AUTO_PLAY_MS`, 3.2s) that calls the same
+  `rotate(1)` used by the next arrow, so it advances the fan on its own.
+  It also cross-fades the play/pause SVG icons, pulses the button, and
+  animates the small equalizer pill above the carousel while running.
+  Any manual interaction (an arrow, a side card, ← / →, a swipe) stops
+  auto-play so it doesn't fight the user.
 - `prefers-reduced-motion: reduce` shortens/disables the animations for
   users who request it.
 

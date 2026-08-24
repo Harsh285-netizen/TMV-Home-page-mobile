@@ -5,6 +5,7 @@
 
     // Keep this in sync with --transition-slide in site.css.
     var ANIMATION_MS = 650;
+    var AUTO_PLAY_MS = 3200;
     var ROLES = ['left', 'center', 'right'];
 
     function init() {
@@ -16,7 +17,6 @@
         var meta = document.querySelector('.player-bar__meta');
         var trackTitleEl = document.getElementById('trackTitle');
         var trackArtistEl = document.getElementById('trackArtist');
-        var audio = document.getElementById('audioEl');
 
         if (!stage || !prevBtn || !nextBtn) {
             return;
@@ -33,17 +33,19 @@
         // Markup order maps 1:1 onto left / center / right to start with.
         var order = cards.map(function (_, i) { return i; }).slice(0, ROLES.length);
         var isAnimating = false;
-        var isPlaying = false;
+        var isAutoPlaying = false;
+        var autoPlayTimer = null;
 
         applyRoles(order);
         updateMeta(order[1], false);
 
-        nextBtn.addEventListener('click', function () { rotate(1); });
-        prevBtn.addEventListener('click', function () { rotate(-1); });
+        nextBtn.addEventListener('click', function () { stopAutoPlay(); rotate(1); });
+        prevBtn.addEventListener('click', function () { stopAutoPlay(); rotate(-1); });
 
         cards.forEach(function (card, index) {
             card.addEventListener('click', function () {
                 if (isAnimating) return;
+                stopAutoPlay();
                 var role = card.dataset.role;
                 if (role === 'right') rotate(1);
                 if (role === 'left') rotate(-1);
@@ -51,14 +53,15 @@
         });
 
         document.addEventListener('keydown', function (e) {
-            if (e.key === 'ArrowRight') rotate(1);
-            if (e.key === 'ArrowLeft') rotate(-1);
+            if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+            stopAutoPlay();
+            rotate(e.key === 'ArrowRight' ? 1 : -1);
         });
 
-        enableSwipe(stage, function (direction) { rotate(direction); });
+        enableSwipe(stage, function (direction) { stopAutoPlay(); rotate(direction); });
 
         if (playBtn) {
-            playBtn.addEventListener('click', togglePlay);
+            playBtn.addEventListener('click', toggleAutoPlay);
         }
 
         function rotate(direction) {
@@ -109,25 +112,34 @@
             window.setTimeout(apply, 180);
         }
 
-        function togglePlay() {
-            isPlaying = !isPlaying;
-            playBtn.classList.toggle('is-playing', isPlaying);
-            playBtn.setAttribute('aria-pressed', String(isPlaying));
-            playBtn.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
-            if (pill) pill.classList.toggle('is-playing', isPlaying);
-
-            if (!audio) return;
-
-            if (isPlaying) {
-                if (audio.src) {
-                    audio.play().catch(function () {
-                        // Autoplay was blocked or no playable source is set;
-                        // the UI state still reflects the user's intent.
-                    });
-                }
+        function toggleAutoPlay() {
+            if (isAutoPlaying) {
+                stopAutoPlay();
             } else {
-                audio.pause();
+                startAutoPlay();
             }
+        }
+
+        function startAutoPlay() {
+            isAutoPlaying = true;
+            playBtn.classList.add('is-playing');
+            playBtn.setAttribute('aria-pressed', 'true');
+            playBtn.setAttribute('aria-label', 'Pause animation');
+            if (pill) pill.classList.add('is-playing');
+
+            autoPlayTimer = window.setInterval(function () { rotate(1); }, AUTO_PLAY_MS);
+        }
+
+        function stopAutoPlay() {
+            if (!isAutoPlaying) return;
+            isAutoPlaying = false;
+            playBtn.classList.remove('is-playing');
+            playBtn.setAttribute('aria-pressed', 'false');
+            playBtn.setAttribute('aria-label', 'Play animation');
+            if (pill) pill.classList.remove('is-playing');
+
+            window.clearInterval(autoPlayTimer);
+            autoPlayTimer = null;
         }
 
         function enableSwipe(target, onSwipe) {
