@@ -1,0 +1,172 @@
+@page
+@model TMVHomePageMobile.Pages.IndexModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+@{
+    var mobileRoles = new[] { "left", "center", "right" };
+    var desktopRoles = new[] { "outer-left", "inner-left", "center", "inner-right", "outer-right" };
+}
+
+<!-- ============== Mobile hero (<900px) ============== -->
+<main class="phone-frame">
+
+    <header class="site-header">
+        <span class="logo">TM<small>VENTURES</small></span>
+    </header>
+
+    <section class="fan-carousel" id="fanCarousel" aria-roledescription="carousel" aria-label="Featured releases">
+        <div class="fan-stage" id="fanStage">
+            @for (var i = 0; i < Model.Slides.Count; i++)
+            {
+                var slide = Model.Slides[i];
+                var initialRole = mobileRoles[i % mobileRoles.Length];
+                <div class="fan-card fan-card--@initialRole @slide.ImageClass"
+                     data-slide-index="@i"
+                     data-role="@initialRole"
+                     tabindex="0"
+                     role="group"
+                     aria-roledescription="slide"
+                     aria-current="@(initialRole == "center" ? "true" : "false")"
+                     aria-label="@(i + 1) of @Model.Slides.Count">
+                    <span class="fan-card__label">@slide.Alt</span>
+                </div>
+            }
+
+            <div class="now-playing-pill" id="nowPlayingPill" aria-hidden="true">
+                <span class="now-playing-pill__bar"></span>
+                <span class="now-playing-pill__bar"></span>
+                <span class="now-playing-pill__bar"></span>
+                <span class="now-playing-pill__bar"></span>
+            </div>
+        </div>
+    </section>
+
+    <section class="intro-copy">
+        <p>
+            We believe in working together towards a common goal of promoting music in India and
+            beyond, while fostering a non-judgmental and supportive space for artists and listeners
+            alike.
+        </p>
+        <h1 class="headline">
+            <span class="headline__accent">ARTISTE-</span>
+            <span class="headline__base">FIRST LABEL</span>
+        </h1>
+    </section>
+
+    @{ var centerSlide = Model.Slides[1]; }
+    <footer class="player-bar" id="playerBar">
+        <button type="button" class="player-bar__arrow" id="prevBtn" aria-label="Previous">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+        </button>
+
+        <button type="button" class="player-bar__arrow" id="nextBtn" aria-label="Next">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+        </button>
+
+        <div class="player-bar__meta" aria-live="polite">
+            <span class="player-bar__track" id="trackTitle">@centerSlide.Track</span>
+            <span class="player-bar__artist" id="trackArtist">by @centerSlide.Artist</span>
+        </div>
+
+        <button type="button" class="player-bar__play" id="playBtn" aria-label="Play animation" aria-pressed="false">
+            <svg class="icon-play" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <path d="M8 5v14l11-7z" fill="currentColor" />
+            </svg>
+            <svg class="icon-pause" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" />
+            </svg>
+        </button>
+    </footer>
+</main>
+
+<!-- ============== Desktop hero (>=900px) ============== -->
+<main class="desktop-hero">
+
+    <header class="site-header">
+        <span class="logo">TM<small>VENTURES</small></span>
+    </header>
+
+    <section class="desktop-stage" id="desktopStage" aria-roledescription="carousel" aria-label="Featured releases">
+        @for (var i = 0; i < Model.DesktopSlides.Count; i++)
+        {
+            var slide = Model.DesktopSlides[i];
+            var initialRole = desktopRoles[i % desktopRoles.Length];
+            <div class="fan-card pos-@initialRole @slide.ImageClass"
+                 data-slide-index="@i"
+                 data-role="@initialRole"
+                 tabindex="0"
+                 role="group"
+                 aria-roledescription="slide"
+                 aria-current="@(initialRole == "center" ? "true" : "false")"
+                 aria-label="@(i + 1) of @Model.DesktopSlides.Count">
+                <span class="fan-card__label">@slide.Alt</span>
+            </div>
+        }
+
+        <div class="now-playing-badge" id="nowPlayingPillDesktop" aria-hidden="true">Now Playing</div>
+    </section>
+
+    @{ var desktopCenterSlide = Model.DesktopSlides[2]; }
+    <section class="desktop-content">
+        <div class="control-cluster" id="playerBarDesktop">
+            <div class="control-cluster__arrows">
+                <button type="button" class="control-cluster__arrow" id="prevBtnDesktop" aria-label="Previous">
+                    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                        <path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2"
+                              stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </button>
+                <button type="button" class="control-cluster__arrow" id="nextBtnDesktop" aria-label="Next">
+                    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                        <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"
+                              stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="control-cluster__track">
+                <div class="player-bar__meta" aria-live="polite">
+                    <span class="player-bar__track" id="trackTitleDesktop">@desktopCenterSlide.Track</span>
+                    <span class="player-bar__artist" id="trackArtistDesktop">by @desktopCenterSlide.Artist</span>
+                </div>
+
+                <button type="button" class="player-bar__play control-cluster__play" id="playBtnDesktop"
+                        aria-label="Play animation" aria-pressed="false">
+                    <svg class="icon-play" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                        <path d="M8 5v14l11-7z" fill="currentColor" />
+                    </svg>
+                    <svg class="icon-pause" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                        <path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="desktop-copy">
+            <p>
+                We believe in working together towards a common goal of promoting music in India and
+                beyond, while fostering a non-judgmental and supportive space for artists and listeners
+                alike.
+            </p>
+            <h1 class="headline desktop-headline">
+                <span class="headline__accent">ARTISTE-</span>
+                <span class="headline__base">FIRST LABEL</span>
+            </h1>
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    <script>
+        window.tmvSlides = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Slides));
+        window.tmvDesktopSlides = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DesktopSlides));
+    </script>
+}
